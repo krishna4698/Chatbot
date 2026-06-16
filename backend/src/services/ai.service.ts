@@ -10,12 +10,15 @@ const genAI = new GoogleGenerativeAI(
   apiKey
 );
 
+const getModel = () =>
+  genAI.getGenerativeModel({
+    model: "gemini-2.5-flash"
+  });
+
 export const getAIResponse = async (
   question: string
 ) => {
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash"
-  });
+  const model = getModel();
 
   const result = await model.generateContent(
     question
@@ -23,3 +26,20 @@ export const getAIResponse = async (
 
   return result.response.text();
 };
+
+export async function* streamAIResponse(
+  question: string
+) {
+  const model = getModel();
+  const result = await model.generateContentStream(
+    question
+  );
+
+  for await (const chunk of result.stream) {
+    const text = chunk.text();
+
+    if (text) {
+      yield text;
+    }
+  }
+}
